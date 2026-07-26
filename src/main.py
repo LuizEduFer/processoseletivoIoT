@@ -11,9 +11,13 @@ estado_pendente = None
 leituras_consecutivas = 0
 ultima_leitura = 0
 
-CONFIRMACAO_NORMAL = 3
-CONFIRMACAO_VAZIO = 3
-CONFIRMACAO_ALERTA = 3
+CONFIRMACAO_NORMAL = 4
+CONFIRMACAO_VAZIO = 4
+CONFIRMACAO_ALERTA = 6
+
+# Buffer para o filtro de média truncada
+buffer_leituras = []
+TAMANHO_BUFFER = 5
 
 
 def ler_hx711():
@@ -39,23 +43,37 @@ def ler_hx711():
     return valor
 
 
+def obter_leitura_filtrada():
+    
+    valor_bruto = ler_hx711()
+    if valor_bruto is None:
+        return None
+
+    buffer_leituras.append(valor_bruto)
+    if len(buffer_leituras) > TAMANHO_BUFFER:
+        buffer_leituras.pop(0)
+
+    # Se o buffer ainda está enchendo, usa média simples
+    if len(buffer_leituras) < 3:
+        return sum(buffer_leituras) // len(buffer_leituras)
+
+    ordenados = sorted(buffer_leituras)
+    centrais = ordenados[1:-1]
+    return sum(centrais) // len(centrais)
+
+
 def classificar(valor):
     if valor is None:
         return None
 
-    if abs(valor) <= 30:
+    if valor <= 25:
         return "alerta"
-
-    if abs(valor - 2100) <= 250:
-        return "cheio"
-
-    if abs(valor - 907) <= 250:
-        return "regular"
-
-    if 30 < valor <= 150:
+    elif valor <= 400:
         return "vazio"
-
-    return None
+    elif valor <= 1600:
+        return "regular"
+    else:
+        return "cheio"
 
 
 def atualizar_estado(novo_estado):
@@ -83,12 +101,13 @@ def atualizar_estado(novo_estado):
         return
 
     estado_anterior = estado_atual
-
     estado_pendente = None
     leituras_consecutivas = 0
 
     if novo_estado == "alerta":
-        print("ALERTA: Caixa ausente ou erro de calibração no sensor HX711!")
+        if estado_atual != "alerta":
+            estado_atual = "alerta"
+            print("ALERTA: Caixa ausente ou erro de calibração no sensor HX711!")
         return
 
     if novo_estado == "vazio":
@@ -98,18 +117,17 @@ def atualizar_estado(novo_estado):
         return
 
     if novo_estado == "regular":
-        estado_atual = "regular"
-
-        if estado_anterior != "regular":
-            print("Status: Estoque Regular (2500g)")
-
+        if estado_atual != "regular":
+            estado_atual = "regular"
+            if estado_anterior != "regular":
+                print("Status: Estoque Regular (2500g)")
         return
 
     if novo_estado == "cheio":
-        estado_atual = "cheio"
-
-        if estado_anterior == "vazio":
-            print("Abastecimento concluído. Caixa cheia.")
+        if estado_atual != "cheio":
+            estado_atual = "cheio"
+            if estado_anterior == "vazio":
+                print("Abastecimento concluído. Caixa cheia.")
 
 
 while True:
@@ -118,13 +136,12 @@ while True:
     if time.ticks_diff(agora, ultima_leitura) >= 100:
         ultima_leitura = agora
 
-        valor = ler_hx711()
+        valor_filtrado = obter_leitura_filtrada()
 
-        if valor is not None:
-            print("VALOR BRUTO:", valor)
+        if valor_filtrado is not None:
+            print("VALOR BRUTO:", valor_filtrado)
 
-            estado = classificar(valor)
-
+            estado = classificar(valor_filtrado)
             atualizar_estado(estado)
 
     time.sleep_ms(10)
