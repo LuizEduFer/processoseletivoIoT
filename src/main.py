@@ -11,15 +11,9 @@ estado_pendente = None
 leituras_consecutivas = 0
 ultima_leitura = 0
 
-VALOR_CHEIO = 2100
-VALOR_REGULAR = 907
-
-TOLERANCIA_CHEIO = 250
-TOLERANCIA_REGULAR = 250
-LIMITE_VAZIO = 200
-
-CONFIRMACAO_ESTADO = 3
-CONFIRMACAO_VAZIO = 5
+CONFIRMACAO_NORMAL = 3
+CONFIRMACAO_VAZIO = 3
+CONFIRMACAO_ALERTA = 3
 
 
 def ler_hx711():
@@ -49,13 +43,16 @@ def classificar(valor):
     if valor is None:
         return None
 
-    if abs(valor - VALOR_CHEIO) <= TOLERANCIA_CHEIO:
+    if abs(valor) <= 30:
+        return "alerta"
+
+    if abs(valor - 2100) <= 250:
         return "cheio"
 
-    if abs(valor - VALOR_REGULAR) <= TOLERANCIA_REGULAR:
+    if abs(valor - 907) <= 250:
         return "regular"
 
-    if abs(valor) <= LIMITE_VAZIO:
+    if 30 < valor <= 150:
         return "vazio"
 
     return None
@@ -69,38 +66,48 @@ def atualizar_estado(novo_estado):
     if novo_estado is None:
         return
 
-    if novo_estado == estado_atual:
-        estado_pendente = None
-        leituras_consecutivas = 0
-        return
-
     if novo_estado == estado_pendente:
         leituras_consecutivas += 1
     else:
         estado_pendente = novo_estado
         leituras_consecutivas = 1
 
-    if novo_estado == "vazio":
+    if novo_estado == "alerta":
+        limite = CONFIRMACAO_ALERTA
+    elif novo_estado == "vazio":
         limite = CONFIRMACAO_VAZIO
     else:
-        limite = CONFIRMACAO_ESTADO
+        limite = CONFIRMACAO_NORMAL
 
     if leituras_consecutivas < limite:
         return
 
     estado_anterior = estado_atual
 
-    estado_atual = novo_estado
     estado_pendente = None
     leituras_consecutivas = 0
 
+    if novo_estado == "alerta":
+        print("ALERTA: Caixa ausente ou erro de calibração no sensor HX711!")
+        return
+
     if novo_estado == "vazio":
-        print("Evento de reposição disparado! Caixa vazia detectada.")
+        if estado_atual != "vazio":
+            estado_atual = "vazio"
+            print("Evento de reposição disparado! Caixa vazia detectada.")
+        return
 
-    elif novo_estado == "regular":
-        print("Status: Estoque Regular (2500g)")
+    if novo_estado == "regular":
+        estado_atual = "regular"
 
-    elif novo_estado == "cheio":
+        if estado_anterior != "regular":
+            print("Status: Estoque Regular (2500g)")
+
+        return
+
+    if novo_estado == "cheio":
+        estado_atual = "cheio"
+
         if estado_anterior == "vazio":
             print("Abastecimento concluído. Caixa cheia.")
 
