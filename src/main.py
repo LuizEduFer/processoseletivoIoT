@@ -75,7 +75,7 @@ def classificar(valor):
 
     if valor <= 15:
         return "alerta"
-    elif valor <= 400:
+    elif valor <= 40:
         return "vazio"
     elif valor <= 1600:
         return "regular"
