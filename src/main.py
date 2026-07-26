@@ -12,8 +12,8 @@ leituras_consecutivas = 0
 ultima_leitura = 0
 
 CONFIRMACAO_NORMAL = 4
-CONFIRMACAO_VAZIO = 6     
-CONFIRMACAO_ALERTA = 4     # Aumentado para evitar falsos alertas
+CONFIRMACAO_VAZIO = 4
+CONFIRMACAO_ALERTA = 2
 
 buffer_leituras = []
 TAMANHO_BUFFER = 7
@@ -91,7 +91,7 @@ def atualizar_estado(novo_estado):
     if novo_estado is None:
         return
 
-    if estado_atual in ("regular", "cheio") and novo_estado in ("alerta", "vazio"):
+    if estado_atual == "regular" and novo_estado == "alerta":
         media_recente = sum(buffer_leituras) // len(buffer_leituras) if buffer_leituras else 0
         if media_recente > 800:
             return
