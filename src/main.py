@@ -47,6 +47,9 @@ def obter_leitura_filtrada():
     if valor_bruto is None:
         return None
 
+    if valor_bruto == 0 and buffer_leituras and max(buffer_leituras, default=0) > 500:
+        return None
+
     if valor_bruto > 5000:
         valor_bruto = valor_bruto // 1000
 
@@ -88,6 +91,9 @@ def atualizar_estado(novo_estado):
     if novo_estado is None:
         return
 
+    if estado_atual == "regular" and novo_estado in ("alerta", "vazio"):
+        return
+
     if novo_estado == estado_pendente:
         leituras_consecutivas += 1
     else:
@@ -123,8 +129,7 @@ def atualizar_estado(novo_estado):
     if novo_estado == "regular":
         if estado_atual != "regular":
             estado_atual = "regular"
-            if estado_anterior != "regular":
-                print("Status: Estoque Regular (2500g)")
+            print("Status: Estoque Regular (2500g)")
         return
 
     if novo_estado == "cheio":
