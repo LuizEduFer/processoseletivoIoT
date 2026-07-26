@@ -50,10 +50,7 @@ def obter_leitura_filtrada():
     if valor_bruto > 5000:
         valor_bruto = valor_bruto // 1000
 
-    if valor_bruto <= 15 and buffer_leituras and max(buffer_leituras, default=0) > 500:
-        buffer_leituras.clear()
-        return valor_bruto
-
+    # Limpeza apenas para alerta real, evitando falso positivo no reabastecimento
     if valor_bruto <= 5:
         buffer_leituras.clear()
         return valor_bruto
