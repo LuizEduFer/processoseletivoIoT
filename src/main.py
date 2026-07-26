@@ -13,9 +13,8 @@ ultima_leitura = 0
 
 CONFIRMACAO_NORMAL = 4
 CONFIRMACAO_VAZIO = 4
-CONFIRMACAO_ALERTA = 6
+CONFIRMACAO_ALERTA = 3
 
-# Buffer para o filtro de média truncada
 buffer_leituras = []
 TAMANHO_BUFFER = 5
 
@@ -44,16 +43,19 @@ def ler_hx711():
 
 
 def obter_leitura_filtrada():
-    
     valor_bruto = ler_hx711()
     if valor_bruto is None:
         return None
+
+    # Bypass imediato para anomalias/zero absoluto (evita retenção do buffer)
+    if valor_bruto <= 5:
+        buffer_leituras.clear()
+        return valor_bruto
 
     buffer_leituras.append(valor_bruto)
     if len(buffer_leituras) > TAMANHO_BUFFER:
         buffer_leituras.pop(0)
 
-    # Se o buffer ainda está enchendo, usa média simples
     if len(buffer_leituras) < 3:
         return sum(buffer_leituras) // len(buffer_leituras)
 
@@ -66,7 +68,7 @@ def classificar(valor):
     if valor is None:
         return None
 
-    if valor <= 25:
+    if valor <= 15:
         return "alerta"
     elif valor <= 400:
         return "vazio"
