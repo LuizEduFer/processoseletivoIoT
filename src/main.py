@@ -13,10 +13,10 @@ ultima_leitura = 0
 
 CONFIRMACAO_NORMAL = 4
 CONFIRMACAO_VAZIO = 4
-CONFIRMACAO_ALERTA = 2
+CONFIRMACAO_ALERTA = 3  # Exige mais firmeza para disparar alerta
 
 buffer_leituras = []
-TAMANHO_BUFFER = 7 
+TAMANHO_BUFFER = 7
 
 
 def ler_hx711():
@@ -62,7 +62,6 @@ def obter_leitura_filtrada():
         return sum(buffer_leituras) // len(buffer_leituras)
 
     ordenados = sorted(buffer_leituras)
-    # Ignora os 2 extremos para filtrar picos do simulador
     centrais = ordenados[2:-2] if len(ordenados) >= 5 else ordenados[1:-1]
     if not centrais:
         centrais = ordenados
@@ -90,6 +89,9 @@ def atualizar_estado(novo_estado):
     global leituras_consecutivas
 
     if novo_estado is None:
+        return
+
+    if estado_atual in ("regular", "cheio") and novo_estado == "alerta":
         return
 
     if novo_estado == estado_pendente:
