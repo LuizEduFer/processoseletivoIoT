@@ -12,8 +12,8 @@ leituras_consecutivas = 0
 ultima_leitura = 0
 
 CONFIRMACAO_NORMAL = 4
-CONFIRMACAO_VAZIO = 5      # Exige mais firmeza para disparar reposição
-CONFIRMACAO_ALERTA = 3
+CONFIRMACAO_VAZIO = 2    
+CONFIRMACAO_ALERTA = 2
 
 buffer_leituras = []
 TAMANHO_BUFFER = 7
@@ -75,7 +75,7 @@ def classificar(valor):
 
     if valor <= 15:
         return "alerta"
-    elif valor <= 400: 
+    elif valor <= 400:
         return "vazio"
     elif valor <= 1600:
         return "regular"
@@ -91,7 +91,6 @@ def atualizar_estado(novo_estado):
     if novo_estado is None:
         return
 
-    # Blindagem para evitar falsos alarmes
     if estado_atual == "regular" and novo_estado == "alerta":
         media_recente = sum(buffer_leituras) // len(buffer_leituras) if buffer_leituras else 0
         if media_recente > 800:
