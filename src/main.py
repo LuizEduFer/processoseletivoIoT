@@ -13,7 +13,7 @@ ultima_leitura = 0
 
 CONFIRMACAO_NORMAL = 4
 CONFIRMACAO_VAZIO = 4
-CONFIRMACAO_ALERTA = 3
+CONFIRMACAO_ALERTA = 2
 
 buffer_leituras = []
 TAMANHO_BUFFER = 5
@@ -47,11 +47,12 @@ def obter_leitura_filtrada():
     if valor_bruto is None:
         return None
 
-    if valor_bruto == 0 and buffer_leituras and max(buffer_leituras, default=0) > 500:
-        return None
-
     if valor_bruto > 5000:
         valor_bruto = valor_bruto // 1000
+
+    if valor_bruto <= 15 and buffer_leituras and max(buffer_leituras, default=0) > 500:
+        buffer_leituras.clear()
+        return valor_bruto
 
     if valor_bruto <= 5:
         buffer_leituras.clear()
@@ -89,9 +90,6 @@ def atualizar_estado(novo_estado):
     global leituras_consecutivas
 
     if novo_estado is None:
-        return
-
-    if estado_atual == "regular" and novo_estado in ("alerta", "vazio"):
         return
 
     if novo_estado == estado_pendente:
