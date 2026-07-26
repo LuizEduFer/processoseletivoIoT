@@ -11,15 +11,15 @@ estado_pendente = None
 leituras_consecutivas = 0
 ultima_leitura = 0
 
-LIMITE_CHEIO = 200
-LIMITE_REGULAR = 200
-LIMITE_VAZIO = 30
-
 VALOR_CHEIO = 2100
 VALOR_REGULAR = 907
 
+TOLERANCIA_CHEIO = 250
+TOLERANCIA_REGULAR = 250
+LIMITE_VAZIO = 200
+
 CONFIRMACAO_ESTADO = 3
-CONFIRMACAO_VAZIO = 10
+CONFIRMACAO_VAZIO = 5
 
 
 def ler_hx711():
@@ -49,10 +49,10 @@ def classificar(valor):
     if valor is None:
         return None
 
-    if abs(valor - VALOR_CHEIO) <= LIMITE_CHEIO:
+    if abs(valor - VALOR_CHEIO) <= TOLERANCIA_CHEIO:
         return "cheio"
 
-    if abs(valor - VALOR_REGULAR) <= LIMITE_REGULAR:
+    if abs(valor - VALOR_REGULAR) <= TOLERANCIA_REGULAR:
         return "regular"
 
     if abs(valor) <= LIMITE_VAZIO:
@@ -80,7 +80,10 @@ def atualizar_estado(novo_estado):
         estado_pendente = novo_estado
         leituras_consecutivas = 1
 
-    limite = CONFIRMACAO_VAZIO if novo_estado == "vazio" else CONFIRMACAO_ESTADO
+    if novo_estado == "vazio":
+        limite = CONFIRMACAO_VAZIO
+    else:
+        limite = CONFIRMACAO_ESTADO
 
     if leituras_consecutivas < limite:
         return
@@ -91,11 +94,11 @@ def atualizar_estado(novo_estado):
     estado_pendente = None
     leituras_consecutivas = 0
 
-    if novo_estado == "regular":
-        print("Status: Estoque Regular (2500g)")
-
-    elif novo_estado == "vazio":
+    if novo_estado == "vazio":
         print("Evento de reposição disparado! Caixa vazia detectada.")
+
+    elif novo_estado == "regular":
+        print("Status: Estoque Regular (2500g)")
 
     elif novo_estado == "cheio":
         if estado_anterior == "vazio":
