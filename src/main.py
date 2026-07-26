@@ -13,7 +13,7 @@ ultima_leitura = 0
 
 CONFIRMACAO_NORMAL = 4
 CONFIRMACAO_VAZIO = 4
-CONFIRMACAO_ALERTA = 3  # Exige mais firmeza para disparar alerta
+CONFIRMACAO_ALERTA = 2
 
 buffer_leituras = []
 TAMANHO_BUFFER = 7
@@ -50,6 +50,7 @@ def obter_leitura_filtrada():
     if valor_bruto > 5000:
         valor_bruto = valor_bruto // 1000
 
+    # Se a leitura for zero ou muito baixa, esvazia o buffer
     if valor_bruto <= 5:
         buffer_leituras.clear()
         return valor_bruto
@@ -91,7 +92,7 @@ def atualizar_estado(novo_estado):
     if novo_estado is None:
         return
 
-    if estado_atual in ("regular", "cheio") and novo_estado == "alerta":
+    if estado_atual == "regular" and novo_estado == "alerta":
         return
 
     if novo_estado == estado_pendente:
