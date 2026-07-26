@@ -47,7 +47,9 @@ def obter_leitura_filtrada():
     if valor_bruto is None:
         return None
 
-    # Bypass imediato para anomalias/zero absoluto (evita retenção do buffer)
+    if valor_bruto > 5000:
+        valor_bruto = valor_bruto // 1000
+
     if valor_bruto <= 5:
         buffer_leituras.clear()
         return valor_bruto
