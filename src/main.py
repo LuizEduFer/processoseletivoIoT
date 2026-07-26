@@ -16,7 +16,7 @@ CONFIRMACAO_VAZIO = 4
 CONFIRMACAO_ALERTA = 2
 
 buffer_leituras = []
-TAMANHO_BUFFER = 5
+TAMANHO_BUFFER = 7 
 
 
 def ler_hx711():
@@ -50,7 +50,6 @@ def obter_leitura_filtrada():
     if valor_bruto > 5000:
         valor_bruto = valor_bruto // 1000
 
-    # Limpeza apenas para alerta real, evitando falso positivo no reabastecimento
     if valor_bruto <= 5:
         buffer_leituras.clear()
         return valor_bruto
@@ -63,7 +62,11 @@ def obter_leitura_filtrada():
         return sum(buffer_leituras) // len(buffer_leituras)
 
     ordenados = sorted(buffer_leituras)
-    centrais = ordenados[1:-1]
+    # Ignora os 2 extremos para filtrar picos do simulador
+    centrais = ordenados[2:-2] if len(ordenados) >= 5 else ordenados[1:-1]
+    if not centrais:
+        centrais = ordenados
+
     return sum(centrais) // len(centrais)
 
 
