@@ -121,7 +121,10 @@ while True:
         valor = ler_hx711()
 
         if valor is not None:
+            print("VALOR BRUTO:", valor)
+
             estado = classificar(valor)
+
             atualizar_estado(estado)
 
     time.sleep_ms(10)
